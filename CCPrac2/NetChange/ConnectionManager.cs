@@ -39,7 +39,9 @@ namespace CCPrac2.NetChange
         public void Start()
         {
             Thread t = new Thread(new ThreadStart(listenerThread));
+						Thread w = new Thread(workerThread);
             t.Start();
+						w.Start();
         }
 
         private void listenerThread()
@@ -57,6 +59,28 @@ namespace CCPrac2.NetChange
                 catch (Exception e) { Console.WriteLine(e.Message); };
             }
         }
+
+				private void workerThread() {
+					while (true) {
+						bool hadItems = false;
+						//foreach does not handle it well when its collection is modified.
+						lock (neighbours) {				
+							foreach (KeyValuePair<int, ConnectionWorker> k in neighbours) {
+								var work = k.Value.getFromQueue();
+								if (work != null) {
+									hadItems = true;
+									ExecuteCommand(work);
+								}
+							}
+						}
+						if(!hadItems) //if there are no items, make way for other threads.
+							Thread.Yield();
+					}
+				}
+
+				private void ExecuteCommand(Tuple<char, string[]> command) {
+					//todo: actually use the commands (parse and execute)
+				}
 
         /// <summary>
         /// Adds a new neighbour to our network state.
