@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CCPrac2.NetChange;
+using System.Threading;
 
 namespace CCPrac2
 {
@@ -38,6 +39,7 @@ namespace CCPrac2
                 switch(split[0])
                 {
                     case "R":
+                        Console.Write(manager.RoutingString());
                         break;
                     case "B":
                         break;

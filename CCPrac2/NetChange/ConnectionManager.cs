@@ -14,7 +14,8 @@ namespace CCPrac2.NetChange
     class ConnectionManager
     {
         private int id;
-        Dictionary<int, ConnectionWorker> neighbours;
+        private Dictionary<int, ConnectionWorker> neighbours;
+        private Dictionary<int, Tuple<int,int>> routing;
         TcpListener listener;
 
         /// <summary>
@@ -25,6 +26,10 @@ namespace CCPrac2.NetChange
         {
             this.id = id;
             neighbours = new Dictionary<int, ConnectionWorker>();
+            routing = new Dictionary<int, Tuple<int,int>>();
+
+            routing.Add(id, new Tuple<int, int>(id, 0));
+
             listener = new TcpListener(IPAddress.Any, id);
         }
 
@@ -39,6 +44,7 @@ namespace CCPrac2.NetChange
 
         private void listenerThread()
         {
+            listener.ExclusiveAddressUse = true;
             listener.Start();
             while (true)
             {
@@ -61,17 +67,42 @@ namespace CCPrac2.NetChange
             lock(neighbours)
             {
                 neighbours.Add(remoteId, worker);
+                routing.Add(remoteId, new Tuple<int, int>(remoteId, 1));
             }
         }
 
         public void ConnectToPort(int remoteId)
         {
             Console.WriteLine("// Connecting to: {0}", remoteId);
+
             TcpClient client = new TcpClient();
+            client.ExclusiveAddressUse = true;
             client.Connect("localhost", remoteId);
             
             ConnectionWorker worker = new ConnectionWorker(id, client, this);
             worker.Start();
+        }
+
+        public string RoutingString()
+        {
+            string ret = "";
+            Dictionary<int, Tuple<int, int>> copy;
+
+            // Copy to make sure we don't lock too long
+            lock(routing)
+            {
+                copy = new Dictionary<int, Tuple<int, int>>(routing);
+            }
+
+            // Iterate and add to return string
+            Dictionary<int, Tuple<int, int>>.Enumerator dictEnum = copy.GetEnumerator();
+            while (dictEnum.MoveNext())
+                ret += string.Format("{0} {1} {2}\n",
+                    dictEnum.Current.Key,
+                    dictEnum.Current.Value.Item1,
+                    dictEnum.Current.Value.Item2 == 0 ? "local" : dictEnum.Current.Value.Item2.ToString());
+
+            return ret;
         }
 
         public int ID
