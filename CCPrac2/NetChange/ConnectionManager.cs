@@ -64,6 +64,7 @@ namespace CCPrac2.NetChange
 					while (true) {
 						bool hadItems = false;
 						//foreach does not handle it well when its collection is modified.
+						// Yuri: I think this lock is too big, it might severely block access to "neighbours"
 						lock (neighbours) {				
 							foreach (KeyValuePair<int, ConnectionWorker> k in neighbours) {
 								var work = k.Value.getFromQueue();
