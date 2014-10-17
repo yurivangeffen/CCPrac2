@@ -63,6 +63,8 @@ namespace CCPrac2.NetChange
 
         /// <summary>
         /// Main threadloop.
+        /// Receives messages and splits them on spaces (except for quotes), also
+        /// adds the messages to the message queue.
         /// </summary>
         public void Work()
         {
@@ -96,10 +98,11 @@ namespace CCPrac2.NetChange
         /// </summary>
         public Tuple<char, string[]> getFromQueue()
         {
-            Tuple<char, string[]> ret;
+            Tuple<char, string[]> ret = null;
             lock (messageQueue)
             {
-                ret = messageQueue.Dequeue();
+                if(messageQueue.Count != 0)
+                    ret = messageQueue.Dequeue();
             }
             return ret;
         }

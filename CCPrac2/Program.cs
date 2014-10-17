@@ -13,6 +13,9 @@ namespace CCPrac2
 
         static void Main(string[] args)
         {
+            if (args.Length == 0)
+                return;
+
             // Make a portlist
             int[] ports = new int[args.Length];
             for (int i = 0; i < ports.Length; ++i)

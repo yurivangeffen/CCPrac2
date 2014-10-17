@@ -60,28 +60,53 @@ namespace CCPrac2.NetChange
             }
         }
 
-				private void workerThread() {
-					while (true) {
-						bool hadItems = false;
-						//foreach does not handle it well when its collection is modified.
-						// Yuri: I think this lock is too big, it might severely block access to "neighbours"
-						lock (neighbours) {				
-							foreach (KeyValuePair<int, ConnectionWorker> k in neighbours) {
-								var work = k.Value.getFromQueue();
-								if (work != null) {
-									hadItems = true;
-									ExecuteCommand(work);
-								}
-							}
-						}
-						if(!hadItems) //if there are no items, make way for other threads.
-							Thread.Yield();
-					}
-				}
+        private void workerThread()
+        {
+            while (true)
+            {
+                bool hadItems = false;
 
-				private void ExecuteCommand(Tuple<char, string[]> command) {
-					//todo: actually use the commands (parse and execute)
-				}
+                // Copying dicitonary to make sure we don't have a modification during looping
+                Dictionary<int, ConnectionWorker> copy;
+                lock (neighbours)
+                {
+                    copy = new Dictionary<int, ConnectionWorker>(neighbours);
+                }
+
+                // Loop and check if there are available messages
+                foreach (KeyValuePair<int, ConnectionWorker> k in copy)
+                {
+                    Tuple<char, string[]> work = k.Value.getFromQueue();
+                    if (work != null)
+                    {
+                        hadItems = true;
+                        ExecuteCommand(work, k.Key);
+                    }
+
+                    if (!hadItems) // If there are no items, make way for other threads.
+                        Thread.Yield();
+                }
+            }
+        }
+
+        private void ExecuteCommand(Tuple<char, string[]> command, int fromNeighbour) {
+            switch(command.Item1)
+            {
+                case 'D': // new distance received: (to neighbour, distance)
+                    NewDistance(fromNeighbour, int.Parse(command.Item2[0]), int.Parse(command.Item2[1]));
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Called by ExecuteCommand when we received a new distance measurement from a neighbour.
+        /// Checks weither it is shorter than one we already have (if we even have the toId) and
+        /// spreads the word if we changed our distance-measurement.
+        /// </summary>
+        private void NewDistance(int neighbourId, int toId, int distance)
+        {
+
+        }
 
         /// <summary>
         /// Adds a new neighbour to our network state.
@@ -96,6 +121,10 @@ namespace CCPrac2.NetChange
             }
         }
 
+        /// <summary>
+        /// Connects to the given port on the localhost.
+        /// </summary>
+        /// <param name="remoteId"></param>
         public void ConnectToPort(int remoteId)
         {
             Console.WriteLine("// Connecting to: {0}", remoteId);
@@ -108,6 +137,10 @@ namespace CCPrac2.NetChange
             worker.Start();
         }
 
+        /// <summary>
+        /// Returns a formatted string of the routing table.
+        /// </summary>
+        /// <returns></returns>
         public string RoutingString()
         {
             string ret = "";
