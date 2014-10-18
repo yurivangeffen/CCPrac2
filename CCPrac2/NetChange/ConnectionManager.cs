@@ -16,6 +16,9 @@ namespace CCPrac2.NetChange
         private int id;
         private Dictionary<int, ConnectionWorker> neighbours;
         private Dictionary<int, Tuple<int,int>> routing;
+				private Queue<Tuple<char, string[]>> _priorityQueue;
+				private Queue<Tuple<char, string[]>> _normalQueue;
+
         TcpListener listener;
 
         /// <summary>
@@ -37,12 +40,20 @@ namespace CCPrac2.NetChange
         /// Starts listening for incomming connections and tries to connect to others.
         /// </summary>
         public void Start()
-        {
+       { 
             Thread t = new Thread(new ThreadStart(listenerThread));
 						Thread w = new Thread(workerThread);
             t.Start();
 						w.Start();
         }
+
+				public void Enqueue(Tuple<char, string[]> command) {
+					new Task(() => {
+						lock (_priorityQueue) {
+							_priorityQueue.Enqueue(command);
+						}
+					}).Start();
+				}
 
         private void listenerThread()
         {
@@ -64,28 +75,16 @@ namespace CCPrac2.NetChange
         {
             while (true)
             {
-                bool hadItems = false;
+							if (_priorityQueue.Count > 0)
+								Thread.Sleep(20);
 
-                // Copying dicitonary to make sure we don't have a modification during looping
-                Dictionary<int, ConnectionWorker> copy;
-                lock (neighbours)
-                {
-                    copy = new Dictionary<int, ConnectionWorker>(neighbours);
-                }
+							Tuple<char,string[]> command = null;
+							lock (_priorityQueue) {
+								if (_priorityQueue.Count > 0)
+									command = _priorityQueue.Dequeue();
+							}
 
-                // Loop and check if there are available messages
-                foreach (KeyValuePair<int, ConnectionWorker> k in copy)
-                {
-                    Tuple<char, string[]> work = k.Value.getFromQueue();
-                    if (work != null)
-                    {
-                        hadItems = true;
-                        ExecuteCommand(work, k.Key);
-                    }
-
-                    if (!hadItems) // If there are no items, make way for other threads.
-                        Thread.Yield();
-                }
+							ExecuteCommand(command, 0);
             }
         }
 
@@ -107,6 +106,7 @@ namespace CCPrac2.NetChange
         {
 
         }
+
 
         /// <summary>
         /// Sends message in the form of "M [toId] [message]".
