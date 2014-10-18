@@ -40,7 +40,7 @@ namespace CCPrac2.NetChange
         /// Starts listening for incomming connections and tries to connect to others.
         /// </summary>
         public void Start()
-        {
+       { 
             Thread t = new Thread(new ThreadStart(listenerThread));
 						Thread w = new Thread(workerThread);
             t.Start();
@@ -75,16 +75,16 @@ namespace CCPrac2.NetChange
         {
             while (true)
             {
-                bool hadItems = false;
+							if (_priorityQueue.Count > 0)
+								Thread.Sleep(20);
 
-                // Copying dicitonary to make sure we don't have a modification during looping
-								Tuple<char,string[]> command = null;
-                lock (_priorityQueue) {
-									if(_priorityQueue.Count > 0)
-										command = _priorityQueue.Dequeue();
-                }
+							Tuple<char,string[]> command = null;
+							lock (_priorityQueue) {
+								if (_priorityQueue.Count > 0)
+									command = _priorityQueue.Dequeue();
+							}
 
-								ExecuteCommand(command, 0);
+							ExecuteCommand(command, 0);
             }
         }
 

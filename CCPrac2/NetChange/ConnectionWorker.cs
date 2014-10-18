@@ -35,7 +35,6 @@ namespace CCPrac2.NetChange
             this.id = id; // Easy access to process ID
             this.client = client;
             this.manager = manager;
-            this.messageQueue = new Queue<Tuple<char, string[]>>();
         }
 
         /// <summary>
@@ -52,6 +51,7 @@ namespace CCPrac2.NetChange
             // Handshake
             writer.WriteLine("id {0}", id);;
             remoteId = int.Parse(reader.ReadLine().Split(' ')[1]);
+					  
             manager.AddNeighbour(remoteId, this);
 
             Console.WriteLine("Verbonden: {0}", remoteId);
