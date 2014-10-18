@@ -85,12 +85,8 @@ namespace CCPrac2.NetChange
         /// <summary>
         /// Wraps the Enqueue method of the messageQueue (threadsafe).
         /// </summary>
-        public void addToQueue(char command, string[] args)
-        {
-            lock (messageQueue)
-            {
-                messageQueue.Enqueue(new Tuple<char, string[]>(command, args));
-            }
+        public void addToQueue(char command, string[] args){
+					manager.Enqueue(new Tuple<char, string[]>(command, args));
         }
 
         /// <summary>

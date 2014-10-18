@@ -19,7 +19,6 @@ namespace CCPrac2.NetChange
 				private Queue<Tuple<char, string[]>> _priorityQueue;
 				private Queue<Tuple<char, string[]>> _normalQueue;
 
-				public void Enqueue;
         TcpListener listener;
 
         /// <summary>
@@ -48,7 +47,7 @@ namespace CCPrac2.NetChange
 						w.Start();
         }
 
-				public void enque(Tuple<char, string[]> command) {
+				public void Enqueue(Tuple<char, string[]> command) {
 					new Task(() => {
 						lock (_priorityQueue) {
 							_priorityQueue.Enqueue(command);
