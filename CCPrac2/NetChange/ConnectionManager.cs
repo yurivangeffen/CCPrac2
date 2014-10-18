@@ -117,25 +117,45 @@ namespace CCPrac2.NetChange
             {
                 // Add to routing and increase distance with 1
                 routing.Add(toId, new Tuple<int, int>(neighbourId, distance + 1));
-                UpdateToNeighbours(toId);
+                UpdateRouteToAllNeighbours(toId);
                 return;
             }
             else if(routing[toId].Item2 > distance + 1)
             {
                 routing[toId] = new Tuple<int, int>(neighbourId, distance + 1);
-                UpdateToNeighbours(toId);
+                UpdateRouteToAllNeighbours(toId);
                 return;
             }
         }
 
-        private void UpdateToNeighbours(int toId)
+        /// <summary>
+        /// Sends an update of the specified route to all neighbours
+        /// </summary>
+        private void UpdateRouteToAllNeighbours(int toId)
         {
-            foreach(ConnectionWorker worker in neighbours.Values)
+            foreach (ConnectionWorker worker in neighbours.Values)
             {
                 worker.sendMessage(string.Format("U {0} {1}", toId, routing[toId].Item2));
             }
         }
+        
+        /// <summary>
+        /// Sends an update of the specified route to all neighbours
+        /// </summary>
+        private void UpdateAllRoutesToNeighbour(int neighbour)
+        {
+            ConnectionWorker worker = neighbours[neighbour];
+            foreach (KeyValuePair<int, Tuple<int, int>> route in routing)
+            {
+                worker.sendMessage(string.Format("U {0} {1}", route.Key, route.Value.Item2));
+            }
+        }
 
+        private void UpdateAllRoutesToAllNeighbours()
+        {
+            foreach (int neighbour in neighbours.Keys)
+                UpdateAllRoutesToNeighbour(neighbour);
+        }
 
         /// <summary>
         /// Sends message in the form of "M [toId] [message]".
@@ -171,6 +191,7 @@ namespace CCPrac2.NetChange
                 neighbours.Add(remoteId, worker);
                 routing.Add(remoteId, new Tuple<int, int>(remoteId, 1));
             }
+            UpdateAllRoutesToAllNeighbours();
         }
 
         /// <summary>
