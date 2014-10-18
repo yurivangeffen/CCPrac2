@@ -32,6 +32,8 @@ namespace CCPrac2.NetChange
             routing = new Dictionary<int, Tuple<int, int>>();
 
             routing.Add(id, new Tuple<int, int>(id, 0));
+            _priorityQueue = new Queue<MessageData>();
+            _normalQueue = new Queue<MessageData>();
 
             listener = new TcpListener(IPAddress.Any, id);
         }
