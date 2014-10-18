@@ -27,7 +27,7 @@ namespace CCPrac2.NetChange
 
         private Thread thread;
 
-        private Queue<Tuple<char, string[]>> messageQueue;
+        private Queue<MessageData> messageQueue;
 
 
         public ConnectionWorker(int id, TcpClient client, ConnectionManager manager)
@@ -78,24 +78,24 @@ namespace CCPrac2.NetChange
                 .Select(m => m.Value)
                 .ToArray<string>();
 
-                addToQueue(parts[0][0], parts.Skip(1).ToArray());
+                addToQueue(new MessageData(parts[0][0], id, parts.Skip(1).ToArray()));
             }
         }
 
         /// <summary>
         /// Wraps the Enqueue method of the messageQueue (threadsafe).
         /// </summary>
-        public void addToQueue(char command, string[] args)
+        public void addToQueue(MessageData message)
         {
-            manager.Enqueue(new Tuple<char, string[]>(command, args));
+            manager.Enqueue(message);
         }
 
         /// <summary>
         /// Wraps the Dequeue method of the messageQueue (threadsafe).
         /// </summary>
-        public Tuple<char, string[]> getFromQueue()
+        public MessageData getFromQueue()
         {
-            Tuple<char, string[]> ret = null;
+            MessageData ret = null;
             lock (messageQueue)
             {
                 if (messageQueue.Count != 0)

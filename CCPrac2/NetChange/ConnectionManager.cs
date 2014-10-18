@@ -16,8 +16,8 @@ namespace CCPrac2.NetChange
         private int id;
         private Dictionary<int, ConnectionWorker> neighbours;
         private Dictionary<int, Tuple<int, int>> routing;
-        private Queue<Tuple<char, string[]>> _priorityQueue;
-        private Queue<Tuple<char, string[]>> _normalQueue;
+        private Queue<MessageData> _priorityQueue;
+        private Queue<MessageData> _normalQueue;
 
         TcpListener listener;
 
@@ -47,7 +47,7 @@ namespace CCPrac2.NetChange
             w.Start();
         }
 
-        public void Enqueue(Tuple<char, string[]> command)
+        public void Enqueue(MessageData command)
         {
             new Task(() =>
             {
@@ -81,23 +81,24 @@ namespace CCPrac2.NetChange
                 if (_priorityQueue.Count > 0)
                     Thread.Sleep(20);
 
-                Tuple<char, string[]> command = null;
+                MessageData command = null;
                 lock (_priorityQueue)
                 {
                     if (_priorityQueue.Count > 0)
                         command = _priorityQueue.Dequeue();
                 }
 
-                ExecuteCommand(command, 0);
+                if(command != null)
+                    ExecuteCommand(command);
             }
         }
 
-        private void ExecuteCommand(Tuple<char, string[]> command, int fromNeighbour)
+        private void ExecuteCommand(MessageData command)
         {
-            switch (command.Item1)
+            switch (command.messageType)
             {
                 case 'D': // new distance received: (to neighbour, distance)
-                    NewDistance(fromNeighbour, int.Parse(command.Item2[0]), int.Parse(command.Item2[1]));
+                    NewDistance(command.fromId, int.Parse(command.data[0]), int.Parse(command.data[1]));
                     break;
             }
         }
