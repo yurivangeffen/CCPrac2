@@ -16,6 +16,10 @@ namespace CCPrac2.NetChange
         private int id;
         private Dictionary<int, ConnectionWorker> neighbours;
         private Dictionary<int, Tuple<int,int>> routing;
+				private Queue<Tuple<char, string[]>> _priorityQueue;
+				private Queue<Tuple<char, string[]>> _normalQueue;
+
+				public void Enqueue;
         TcpListener listener;
 
         /// <summary>
@@ -44,6 +48,14 @@ namespace CCPrac2.NetChange
 						w.Start();
         }
 
+				public void enque(Tuple<char, string[]> command) {
+					new Task(() => {
+						lock (_priorityQueue) {
+							_priorityQueue.Enqueue(command);
+						}
+					}).Start();
+				}
+
         private void listenerThread()
         {
             listener.ExclusiveAddressUse = true;
@@ -67,25 +79,13 @@ namespace CCPrac2.NetChange
                 bool hadItems = false;
 
                 // Copying dicitonary to make sure we don't have a modification during looping
-                Dictionary<int, ConnectionWorker> copy;
-                lock (neighbours)
-                {
-                    copy = new Dictionary<int, ConnectionWorker>(neighbours);
+								Tuple<char,string[]> command = null;
+                lock (_priorityQueue) {
+									if(_priorityQueue.Count > 0)
+										command = _priorityQueue.Dequeue();
                 }
 
-                // Loop and check if there are available messages
-                foreach (KeyValuePair<int, ConnectionWorker> k in copy)
-                {
-                    Tuple<char, string[]> work = k.Value.getFromQueue();
-                    if (work != null)
-                    {
-                        hadItems = true;
-                        ExecuteCommand(work, k.Key);
-                    }
-
-                    if (!hadItems) // If there are no items, make way for other threads.
-                        Thread.Yield();
-                }
+								ExecuteCommand(command, 0);
             }
         }
 
@@ -107,6 +107,7 @@ namespace CCPrac2.NetChange
         {
 
         }
+
 
         /// <summary>
         /// Adds a new neighbour to our network state.
