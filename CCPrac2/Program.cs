@@ -45,8 +45,14 @@ namespace CCPrac2
                         Console.Write(manager.RoutingString());
                         break;
                     case "B":
+										manager.Enqueue(new MessageData('B',manager.ID,split.Skip(1).ToArray()));
                         break;
                     case "C":
+										int port;
+										if (int.TryParse(split[1],out port))
+											manager.ConnectToPort(port);
+										else
+											Console.WriteLine("{0} is not a valid port number",split[1]);
                         break;
                     case "D":
                         break;
