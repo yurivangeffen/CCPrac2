@@ -97,7 +97,7 @@ namespace CCPrac2.NetChange
         {
             switch (command.messageType)
             {
-                case 'D': // new distance received: (to neighbour, distance)
+                case 'U': // new distance received: (to neighbour, distance)
                     NewDistance(command.fromId, int.Parse(command.data[0]), int.Parse(command.data[1]));
                     break;
             }
@@ -110,7 +110,28 @@ namespace CCPrac2.NetChange
         /// </summary>
         private void NewDistance(int neighbourId, int toId, int distance)
         {
+            // If we don't have it yet, add it to our routing
+            if(!routing.ContainsKey(toId))
+            {
+                // Add to routing and increase distance with 1
+                routing.Add(toId, new Tuple<int, int>(neighbourId, distance + 1));
+                UpdateToNeighbours(toId);
+                return;
+            }
+            else if(routing[toId].Item2 > distance + 1)
+            {
+                routing[toId] = new Tuple<int, int>(neighbourId, distance + 1);
+                UpdateToNeighbours(toId);
+                return;
+            }
+        }
 
+        private void UpdateToNeighbours(int toId)
+        {
+            foreach(ConnectionWorker worker in neighbours.Values)
+            {
+                worker.sendMessage(string.Format("U {0} {1}", toId, routing[toId].Item2));
+            }
         }
 
 
