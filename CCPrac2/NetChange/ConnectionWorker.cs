@@ -106,5 +106,15 @@ namespace CCPrac2.NetChange
             }
             return ret;
         }
+
+        public void sendMessage(string message)
+        {
+            if(writer==null)
+            {
+                Console.WriteLine("// Writer not yet initialized, can't write \"{0}\"", message);
+                return;
+            }
+            writer.WriteLine(message);
+        }
     }
 }

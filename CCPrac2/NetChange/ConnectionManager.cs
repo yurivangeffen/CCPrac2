@@ -109,6 +109,29 @@ namespace CCPrac2.NetChange
         }
 
         /// <summary>
+        /// Sends message in the form of "M [toId] [message]".
+        /// </summary>
+        private void NewMessage(int toId, string message)
+        {
+            // Message is for us!
+            if (id == toId)
+                Console.WriteLine(message);
+            // We have a connection to the target
+            else if (routing.ContainsKey(toId))
+            {
+                int neighbourId = routing[toId].Item1;
+                ConnectionWorker worker = neighbours[neighbourId];
+
+                worker.sendMessage(string.Format("M {0} {1}", toId, message));
+                Console.WriteLine("Bericht voor {0} doorgestuurd naar {1}", toId, neighbourId);
+            }
+            // No entry in router
+            else
+                Console.WriteLine("// Unable to send message, id {0} isn't in routing table!", toId);
+
+        }
+
+        /// <summary>
         /// Adds a new neighbour to our network state.
         /// </summary>
         /// <param name="id">ID of the neighbouring process.</param>
