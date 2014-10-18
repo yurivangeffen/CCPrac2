@@ -39,6 +39,7 @@ namespace CCPrac2
             while((command=Console.ReadLine()) != "")
             {
                 string[] split = command.Split(' ');
+								int port;
                 switch(split[0])
                 {
                     case "R":
@@ -47,14 +48,14 @@ namespace CCPrac2
                     case "B":
 										manager.Enqueue(new MessageData('B',manager.ID,split.Skip(1).ToArray()));
                         break;
-                    case "C":
-										int port;
+                    case "C":	
 										if (int.TryParse(split[1],out port))
 											manager.ConnectToPort(port);
 										else
 											Console.WriteLine("{0} is not a valid port number",split[1]);
                         break;
                     case "D":
+											manager.Enqueue(new MessageData('D',manager.ID,split.Skip(1).ToArray()));
                         break;
                     default:
                         Console.WriteLine("Unknown command \"{0}\".", split[0]);
