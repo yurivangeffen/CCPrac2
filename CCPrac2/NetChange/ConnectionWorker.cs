@@ -47,11 +47,11 @@ namespace CCPrac2.NetChange
             writer.AutoFlush = true;
 
             Console.WriteLine("// ID: {0}, Socket port: {1}", id, ((IPEndPoint)client.Client.LocalEndPoint).Port);
-            
+
             // Handshake
-            writer.WriteLine("id {0}", id);;
+            writer.WriteLine("id {0}", id); ;
             remoteId = int.Parse(reader.ReadLine().Split(' ')[1]);
-					  
+
             manager.AddNeighbour(remoteId, this);
 
             Console.WriteLine("Verbonden: {0}", remoteId);
@@ -85,8 +85,9 @@ namespace CCPrac2.NetChange
         /// <summary>
         /// Wraps the Enqueue method of the messageQueue (threadsafe).
         /// </summary>
-        public void addToQueue(char command, string[] args){
-					manager.Enqueue(new Tuple<char, string[]>(command, args));
+        public void addToQueue(char command, string[] args)
+        {
+            manager.Enqueue(new Tuple<char, string[]>(command, args));
         }
 
         /// <summary>
@@ -97,7 +98,7 @@ namespace CCPrac2.NetChange
             Tuple<char, string[]> ret = null;
             lock (messageQueue)
             {
-                if(messageQueue.Count != 0)
+                if (messageQueue.Count != 0)
                     ret = messageQueue.Dequeue();
             }
             return ret;
@@ -105,7 +106,7 @@ namespace CCPrac2.NetChange
 
         public void sendMessage(string message)
         {
-            if(writer==null)
+            if (writer == null)
             {
                 Console.WriteLine("// Writer not yet initialized, can't write \"{0}\"", message);
                 return;
