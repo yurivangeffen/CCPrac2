@@ -253,7 +253,7 @@ namespace CCPrac2.NetChange
         {
             lock (neighbours)   { neighbours.Add(remoteId, worker); }
             lock (Nb)           { Nb.Add(remoteId, remoteId); }
-            lock (D)            { D.Add(remoteId, 1); }
+            lock (D)            { D.Add(remoteId, int.MaxValue); }
             lock (nD)           { nD.Add(Tuple.Create(remoteId, remoteId), 0); }
 
             Recompute(remoteId);
