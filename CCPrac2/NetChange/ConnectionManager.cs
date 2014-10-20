@@ -125,7 +125,7 @@ namespace CCPrac2.NetChange
 					RemoveConnection(command.fromId);
 					break;
 				case 'B':
-					NewMessage(int.Parse(command.data[0]), command.data[1]);
+					NewMessage(int.Parse(command.data[0]), command.ToString());
 					break;
             }
         }
@@ -181,7 +181,7 @@ namespace CCPrac2.NetChange
                     Console.WriteLine("//\tFound a path, updating and resending...");
 					lock (D) { D[recId] = minDist + 1; }
 					lock (Nb) { Nb[recId] = bestNeighbour; }
-
+                    Console.WriteLine("Afstand naar {0} is nu {1} via {2}", recId, minDist + 1, bestNeighbour);
                     UpdateRouteToAllNeighbours(recId);
                 }
                 // There's no path to be found :(
@@ -242,7 +242,7 @@ namespace CCPrac2.NetChange
                 int neighbourId = Nb[toId];
                 ConnectionWorker worker = neighbours[neighbourId];
 
-                worker.sendMessage(string.Format("B {0} \"{1}\"", toId, message));
+                worker.sendMessage(string.Format("M {0} {1}", toId, message));
                 Console.WriteLine("Bericht voor {0} doorgestuurd naar {1}", toId, neighbourId);
             }
             // No entry in router
@@ -257,10 +257,10 @@ namespace CCPrac2.NetChange
         /// <param name="id">ID of the neighbouring process.</param>
         public void AddNeighbour(int remoteId, ConnectionWorker worker)
         {
-            lock (neighbours)   { neighbours.Add(remoteId, worker); }
-            lock (Nb)           { Nb.Add(remoteId, remoteId); }
-            lock (D)            { D.Add(remoteId, int.MaxValue); }
-            lock (nD)           { nD.Add(Tuple.Create(remoteId, remoteId), 0); }
+            lock (neighbours)   { neighbours[remoteId] = worker; }
+            lock (Nb)           { Nb[remoteId] = remoteId; }
+            lock (D)            { D[remoteId] = int.MaxValue; }
+            lock (nD)           { nD[Tuple.Create(remoteId, remoteId)] = 0; }
 
             Recompute(remoteId);
             UpdateAllRoutesToAllNeighbours();
