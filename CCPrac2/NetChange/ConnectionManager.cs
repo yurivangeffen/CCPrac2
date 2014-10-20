@@ -125,7 +125,7 @@ namespace CCPrac2.NetChange
 					RemoveConnection(command.fromId);
 					break;
 				case 'B':
-					NewMessage(int.Parse(command.data[0]), command.ToString());
+					NewMessage(int.Parse(command.data[0]), command.data[1]);
 					break;
             }
         }
@@ -199,7 +199,7 @@ namespace CCPrac2.NetChange
         ///// </summary>
         private void UpdateRouteToAllNeighbours(int toId)
         {
-			lock (D) {
+			lock (neighbours) {
 				foreach (ConnectionWorker worker in neighbours.Values) {
 					worker.sendMessage(string.Format("U {0} {1}", toId, D[toId]));
 				}
@@ -242,7 +242,7 @@ namespace CCPrac2.NetChange
                 int neighbourId = Nb[toId];
                 ConnectionWorker worker = neighbours[neighbourId];
 
-                worker.sendMessage(string.Format("M {0} {1}", toId, message));
+                worker.sendMessage(string.Format("B {0} \"{1}\"", toId, message));
                 Console.WriteLine("Bericht voor {0} doorgestuurd naar {1}", toId, neighbourId);
             }
             // No entry in router
