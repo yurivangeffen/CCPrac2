@@ -27,9 +27,6 @@ namespace CCPrac2.NetChange
 
         private Thread thread;
 
-        private Queue<MessageData> messageQueue;
-
-
         public ConnectionWorker(int id, TcpClient client, ConnectionManager manager)
         {
             this.id = id; // Easy access to process ID
@@ -88,20 +85,6 @@ namespace CCPrac2.NetChange
         public void addToQueue(MessageData message)
         {
             manager.Enqueue(message);
-        }
-
-        /// <summary>
-        /// Wraps the Dequeue method of the messageQueue (threadsafe).
-        /// </summary>
-        public MessageData getFromQueue()
-        {
-            MessageData ret = null;
-            lock (messageQueue)
-            {
-                if (messageQueue.Count != 0)
-                    ret = messageQueue.Dequeue();
-            }
-            return ret;
         }
 
         public void sendMessage(string message)
