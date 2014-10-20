@@ -79,8 +79,8 @@ namespace CCPrac2.NetChange
 					.Select(m => m.Value)
 					.ToArray<string>();
                     
-                    Console.WriteLine("// Parsed data: {0}", parts.Skip(1).Aggregate((a,b)=>a+ ", " + b).ToString());
-					addToQueue(new MessageData(parts[0][0], remoteId, parts.Skip(1).ToArray()));
+                    //Console.WriteLine("// Parsed data: {0}", parts.Skip(1).Aggregate((a,b)=>a+ ", " + b).ToString());
+                    addToQueue(new MessageData(parts[0][0], remoteId, parts.Skip(1).ToArray()));
 				}
 			} catch(Exception e){
 				connected = false;

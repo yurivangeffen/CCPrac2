@@ -40,7 +40,7 @@ namespace CCPrac2
             string command;
             while((command=Console.ReadLine()) != "")
             {
-                string[] split = command.Split(' ');
+                string[] split = command.Split(new char[] {' '}, 3);
 								int port;
                 switch(split[0])
                 {
@@ -48,7 +48,7 @@ namespace CCPrac2
                         Console.Write(manager.RoutingString());
                         break;
                     case "B":
-										manager.Enqueue(new MessageData('B',manager.ID,split.Skip(1).ToArray()));
+						manager.Enqueue(new MessageData('B', manager.ID, new string[] {split[1], split[2]}));
                         break;
                     case "C":	
 										if (int.TryParse(split[1],out port))

@@ -125,7 +125,7 @@ namespace CCPrac2.NetChange
 					RemoveConnection(command.fromId);
 					break;
 				case 'B':
-					NewMessage(int.Parse(command.data[0]), command.ToString());
+					NewMessage(int.Parse(command.data[0]), command.data);
 					break;
             }
         }
@@ -231,18 +231,23 @@ namespace CCPrac2.NetChange
         /// <summary>
         /// Sends message in the form of "M [toId] [message]".
         /// </summary>
-        private void NewMessage(int toId, string message)
+        private void NewMessage(int toId, string[] message)
         {
+            string concatted = "";
+            for (int i = 1; i < message.Length; ++i )
+                concatted += message[i] + " ";
+            concatted = concatted.Remove(concatted.Length - 1);
+
             // Message is for us!
             if (id == toId)
-                Console.WriteLine(message);
+                Console.WriteLine(concatted);
             // We have a connection to the target
             else if (Nb.ContainsKey(toId))
             {
                 int neighbourId = Nb[toId];
                 ConnectionWorker worker = neighbours[neighbourId];
 
-                worker.sendMessage(string.Format("M {0} {1}", toId, message));
+                worker.sendMessage(string.Format("B {0} {1}", toId, concatted));
                 Console.WriteLine("Bericht voor {0} doorgestuurd naar {1}", toId, neighbourId);
             }
             // No entry in router
