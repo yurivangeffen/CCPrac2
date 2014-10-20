@@ -17,5 +17,16 @@ namespace CCPrac2.NetChange
             this.fromId = fromId;
             this.data = data;
         }
+
+		public override string ToString() {
+			StringBuilder s = new StringBuilder();
+			s.Append(messageType).Append(' ');
+			if(data !=null)
+				foreach(string st in data)
+				{
+					s.Append(st).Append(' ');
+				}
+			return s.ToString();
+		}
     }
 }
