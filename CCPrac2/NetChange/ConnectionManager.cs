@@ -118,13 +118,12 @@ namespace CCPrac2.NetChange
             switch (command.messageType)
             {
                 case 'U': // new distance received: (to neighbour, distance)
-                    Console.WriteLine("// Colling NewMessage with: {0}, {1}, {2}", command.fromId, command.data[0], command.data[1]);
                     NewDistance(command.fromId, int.Parse(command.data[0]), int.Parse(command.data[1]));
                     break;
-				case 'D':
+				case 'D': // removal of connection
 					RemoveConnection(command.fromId);
 					break;
-				case 'B':
+				case 'B': // incomming message
 					NewMessage(int.Parse(command.data[0]), command.data);
 					break;
             }
@@ -157,8 +156,6 @@ namespace CCPrac2.NetChange
         /// </summary>
         private void Recompute(int recId)
         {
-            Console.WriteLine("// Recomputing {0}", recId);
-
             if (recId != id)
             {
                 // Find best neighbour
@@ -167,7 +164,6 @@ namespace CCPrac2.NetChange
 				lock (neighbours) {
 					foreach (int neighbour in neighbours.Keys) {
 						Tuple<int, int> t = Tuple.Create(neighbour, recId);
-						Console.WriteLine("//\tChecking for path to {0} via {1}, does nD contain key: {2}", recId, neighbour, nD.ContainsKey(t));
 						if (nD.ContainsKey(t) && nD[t] < minDist) {
 							minDist = nD[t];
 							bestNeighbour = neighbour;
@@ -178,7 +174,6 @@ namespace CCPrac2.NetChange
                 // If we found a path
                 if (minDist != int.MaxValue && (!D.ContainsKey(recId) || D[recId] != minDist + 1))
                 {
-                    Console.WriteLine("//\tFound a path, updating and resending...");
 					lock (D) { D[recId] = minDist + 1; }
 					lock (Nb) { Nb[recId] = bestNeighbour; }
                     Console.WriteLine("Afstand naar {0} is nu {1} via {2}", recId, minDist + 1, bestNeighbour);
@@ -187,7 +182,6 @@ namespace CCPrac2.NetChange
                 // There's no path to be found :(
                 else if (minDist == int.MaxValue)
                 {
-                    Console.WriteLine("//\tNo path found.");
 					lock (D) { D.Remove(recId); }
 					lock (Nb) { Nb.Remove(recId); }
                 }
@@ -252,7 +246,7 @@ namespace CCPrac2.NetChange
             }
             // No entry in router
             else
-                Console.WriteLine("// Unable to send message, id {0} isn't in routing table!", toId);
+                Console.WriteLine("Poort {0} is niet bekend", toId);
 
         }
 
@@ -277,8 +271,6 @@ namespace CCPrac2.NetChange
         /// <param name="remoteId"></param>
         public void ConnectToPort(int remoteId)
         {
-            Console.WriteLine("// Connecting to: {0}", remoteId);
-
             TcpClient client = new TcpClient();
             client.ExclusiveAddressUse = true;
             client.Connect("localhost", remoteId);
