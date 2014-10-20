@@ -67,6 +67,10 @@ namespace CCPrac2.NetChange
             w.Start();
         }
 
+        /// <summary>
+        /// Add a message to the prio-queue.
+        /// </summary>
+        /// <param name="command"></param>
         public void Enqueue(MessageData command)
         {
             new Task(() =>
@@ -78,6 +82,9 @@ namespace CCPrac2.NetChange
             }).Start();
         }
 
+        /// <summary>
+        /// Thread that listens for incomming connections.
+        /// </summary>
         private void listenerThread()
         {
             listener.ExclusiveAddressUse = true;
@@ -94,6 +101,9 @@ namespace CCPrac2.NetChange
             }
         }
 
+        /// <summary>
+        /// Thread that processes the messagequeue
+        /// </summary>
         private void workerThread()
         {
             while (true)
@@ -113,6 +123,9 @@ namespace CCPrac2.NetChange
             }
         }
 
+        /// <summary>
+        /// Processes an incomming command
+        /// </summary>
         private void ExecuteCommand(MessageData command)
         {
             switch (command.messageType)
@@ -214,6 +227,9 @@ namespace CCPrac2.NetChange
 			}
         }
 
+        /// <summary>
+        /// Sends our state to all neighbours (used when connecting to a new neighbour).
+        /// </summary>
         private void UpdateAllRoutesToAllNeighbours()
         {
 			lock (neighbours) {

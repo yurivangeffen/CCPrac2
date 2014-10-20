@@ -97,6 +97,10 @@ namespace CCPrac2.NetChange
             manager.Enqueue(message);
         }
 
+        /// <summary>
+        /// Adds message to the write-buffer and flushes.
+        /// </summary>
+        /// <param name="message"></param>
         public void sendMessage(string message)
         {
 			if (connected) {

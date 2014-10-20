@@ -51,13 +51,13 @@ namespace CCPrac2
 						manager.Enqueue(new MessageData('B', manager.ID, new string[] {split[1], split[2]}));
                         break;
                     case "C":	
-										if (int.TryParse(split[1],out port))
-											manager.ConnectToPort(port);
-										else
-											Console.WriteLine("{0} is not a valid port number",split[1]);
+					    if (int.TryParse(split[1],out port))
+						    manager.ConnectToPort(port);
+					    else
+						    Console.WriteLine("{0} is not a valid port number",split[1]);
                         break;
                     case "D":
-											manager.Enqueue(new MessageData('D',manager.ID,split.Skip(1).ToArray()));
+							manager.Enqueue(new MessageData('D',manager.ID,split.Skip(1).ToArray()));
                         break;
                     default:
                         Console.WriteLine("Unknown command \"{0}\".", split[0]);
