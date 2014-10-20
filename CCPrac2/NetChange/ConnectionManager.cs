@@ -164,9 +164,11 @@ namespace CCPrac2.NetChange
 			  }
 			}
 			lock (neighbours) {
-			  var temp = neighbours[ids];
-			  neighbours.Remove(ids);
-			  temp.Dispose();
+			  if (neighbours.ContainsKey(ids)) {
+				var temp = neighbours[ids];
+				neighbours.Remove(ids);
+				temp.Dispose();
+			  }
 			}
 			foreach (int i in recalc) {
 			  Recompute(i);
