@@ -90,7 +90,7 @@ namespace CCPrac2.NetChange
                     ConnectionWorker worker = new ConnectionWorker(id, client, this);
                     worker.Start();
                 }
-                catch (Exception e) { Console.WriteLine(e.Message); };
+                catch (Exception e) { Console.WriteLine("// {0}", e.Message); };
             }
         }
 
@@ -172,7 +172,7 @@ namespace CCPrac2.NetChange
             // If we found a path
             if (minDist != int.MaxValue)
             {
-                D[recId] = minDist + 1;
+                D[recId] = minDist;
                 Nb[recId] = bestNeighbour;
 
                 UpdateRouteToAllNeighbours(recId);
@@ -249,8 +249,9 @@ namespace CCPrac2.NetChange
             lock (Nb)           { Nb.Add(remoteId, remoteId); }
             lock (D)            { D.Add(remoteId, 1); }
             lock (nD)           { nD.Add(Tuple.Create(remoteId, remoteId), 1); }
-            
-            UpdateAllRoutesToAllNeighbours();
+
+            Recompute(remoteId);
+            UpdateAllRoutesToNeighbour(remoteId);
         }
 
         /// <summary>
@@ -276,21 +277,21 @@ namespace CCPrac2.NetChange
         public string RoutingString()
         {
             string ret = "";
-            Dictionary<Tuple<int, int>, int> copy;
+            Dictionary<int, int> copy;
 
             // Copy to make sure we don't lock too long
             lock (nD)
             {
-                copy = new Dictionary<Tuple<int, int>, int>(nD);
+                copy = new Dictionary<int, int>(Nb);
             }
 
             // Iterate and add to return string
-            Dictionary<Tuple<int, int>, int>.Enumerator dictEnum = copy.GetEnumerator();
+            Dictionary<int, int>.Enumerator dictEnum = copy.GetEnumerator();
             while (dictEnum.MoveNext())
                 ret += string.Format("{0} {1} {2}\n",
-                    dictEnum.Current.Key.Item2,
-                    dictEnum.Current.Key.Item1,
-                    dictEnum.Current.Value == 0 ? "local" : dictEnum.Current.Value.ToString());
+                    dictEnum.Current.Key,
+                    dictEnum.Current.Value,
+                    D[dictEnum.Current.Key] == 0 ? "local" : D[dictEnum.Current.Key].ToString());
 
             return ret;
         }
