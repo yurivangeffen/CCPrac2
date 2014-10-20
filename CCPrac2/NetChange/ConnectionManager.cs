@@ -263,6 +263,7 @@ namespace CCPrac2.NetChange
             lock (nD)           { nD.Add(Tuple.Create(remoteId, remoteId), 0); }
 
             Recompute(remoteId);
+            UpdateAllRoutesToAllNeighbours();
         }
 
         /// <summary>
