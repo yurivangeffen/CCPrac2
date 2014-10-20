@@ -13,7 +13,7 @@ namespace CCPrac2.NetChange
     /// Handles the connection to neighbouring processes.
     /// Also keeps state for that neighbour.
     /// </summary>
-    class ConnectionWorker
+    class ConnectionWorker : IDisposable
     {
         private int id;
         private int remoteId;
@@ -72,7 +72,8 @@ namespace CCPrac2.NetChange
 					string incomming = reader.ReadLine();
 
                     //Console.WriteLine("// Received message from {0}: {1}", this.remoteId, incomming);
-
+					if (incomming == null)
+					  break;
 					// Split on spaces (except for when a string is quoted)
 					string[] parts = Regex.Matches(incomming, @"[\""].+?[\""]|[^ ]+")
 					.Cast<Match>()
@@ -84,7 +85,7 @@ namespace CCPrac2.NetChange
 				}
 			} catch(Exception e){
 				connected = false;
-				addToQueue(new MessageData('D', id, null));
+				addToQueue(new MessageData('D', remoteId, null));
                 Console.WriteLine("// Exception on incomming message: {0}", e.Message);
 			}
         }
@@ -113,10 +114,17 @@ namespace CCPrac2.NetChange
 					writer.WriteLine(message);
                     writer.Flush();
 				} catch {
-					addToQueue(new MessageData('D',id,null));
+					addToQueue(new MessageData('D',remoteId,null));
 					connected = false;
 				}
 			}
         }
-    }
+
+		public void Dispose() {
+		  try {
+			connected = false;
+			client.Close();
+		  } catch { }
+		}
+	}
 }

@@ -57,7 +57,7 @@ namespace CCPrac2
 						    Console.WriteLine("{0} is not a valid port number",split[1]);
                         break;
                     case "D":
-							manager.Enqueue(new MessageData('D',manager.ID,split.Skip(1).ToArray()));
+							manager.Enqueue(new MessageData('D',int.Parse(split[1]),null));
                         break;
                     default:
                         Console.WriteLine("Unknown command \"{0}\".", split[0]);

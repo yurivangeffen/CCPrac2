@@ -31,7 +31,6 @@ namespace CCPrac2.NetChange
         
 
         private Queue<MessageData> _priorityQueue;
-        private Queue<MessageData> _normalQueue;
 
         TcpListener listener;
 
@@ -51,7 +50,6 @@ namespace CCPrac2.NetChange
             D.Add(id, 0);
 
             _priorityQueue = new Queue<MessageData>();
-            _normalQueue = new Queue<MessageData>();
 
             listener = new TcpListener(IPAddress.Any, id);
         }
@@ -146,8 +144,33 @@ namespace CCPrac2.NetChange
 		/// removes a target connection and notifies neigbors of the changed distance
 		/// </summary>
 		/// <param name="id"></param>
-		private void RemoveConnection(int id) {
-			//todo: actually remove stuff
+		private void RemoveConnection(int ids) {
+		  if (ids == ID)
+			return;
+			lock(nD){
+			  List<Tuple<int,int>> toRem = new List<Tuple<int,int>>();
+			  foreach (var key in nD.Keys) {
+				if (key.Item1 == ids)
+				  toRem.Add(key);
+			  }
+			  foreach (var key in toRem) {
+				nD.Remove(key);
+			  }
+			}
+			List<int> recalc = new List<int>();
+			lock (Nb) {		  
+			  foreach (var buur in Nb) {
+				  recalc.Add(buur.Key);
+			  }
+			}
+			lock (neighbours) {
+			  var temp = neighbours[ids];
+			  neighbours.Remove(ids);
+			  temp.Dispose();
+			}
+			foreach (int i in recalc) {
+			  Recompute(i);
+			}
 		}
 
         /// <summary>
@@ -289,8 +312,11 @@ namespace CCPrac2.NetChange
         {
             TcpClient client = new TcpClient();
             client.ExclusiveAddressUse = true;
+		  for(int tries = 0; tries < 20 && !client.Connected ; tries++){		  
             client.Connect("localhost", remoteId);
-
+			if (!client.Connected)
+			  Thread.Sleep(50);
+		  }
             ConnectionWorker worker = new ConnectionWorker(id, client, this);
             worker.Start();
         }
