@@ -14,16 +14,16 @@ namespace CCPrac2.NetChange
     class ConnectionManager
     {
         private int id;
-        
+
         private Dictionary<int, ConnectionWorker> neighbours;
-        /// <summary>
-        /// Prefered neighbours
-        /// </summary>
-        private Dictionary<int, int> Nb; 
         /// <summary>
         /// Estimates to all known nodes
         /// </summary>
         private Dictionary<int, int> D;
+        /// <summary>
+        /// Prefered neighbours
+        /// </summary>
+        private Dictionary<int, int> Nb; 
         /// <summary>
         /// Distance estimates of our neighbours <<neighbour, target> distance>
         /// </summary>
@@ -43,8 +43,8 @@ namespace CCPrac2.NetChange
         {
             this.id = id;
             neighbours = new Dictionary<int, ConnectionWorker>();
-            Nb = new Dictionary<int, int>();
             D = new Dictionary<int, int>();
+            Nb = new Dictionary<int, int>();
             nD = new Dictionary<Tuple<int, int>, int>();
 
             Nb.Add(id, id);
@@ -98,7 +98,7 @@ namespace CCPrac2.NetChange
         {
             while (true)
             {
-                if (_priorityQueue.Count > 0)
+                if (_priorityQueue.Count == 0)
                     Thread.Sleep(20);
 
                 MessageData command = null;
@@ -130,58 +130,77 @@ namespace CCPrac2.NetChange
         /// </summary>
         private void NewDistance(int neighbourId, int toId, int distance)
         {
-            // If we don't have it yet, add it to our routing
-            if(!nD.ContainsKey(Tuple.Create(neighbourId, toId)))
-            {
-                // Add to routing and increase distance with 1
-                nD.Add(Tuple.Create(neighbourId, toId), distance + 1);
-                Recompute();
-                return;
-            }
-            else
-            {
-                nD[Tuple.Create(neighbourId, toId)] = distance + 1;
-                Recompute();
-                return;
-            }
+            nD[Tuple.Create(neighbourId, toId)] = distance + 1;
+            Recompute(toId);
+            return;
         }
 
         /// <summary>
-        /// Recomputes our values according to the Netchange algorithm
+        /// Recomputes our distance values according to the Netchange algorithm
         /// </summary>
-        private void Recompute()
+        private void Recompute(int recId)
         {
+            Console.WriteLine("// Recomputing {0}", recId);
 
+            // Find best neighbour
+            int minDist = int.MaxValue;
+            int bestNeighbour = -1;
+            foreach(int neighbour in neighbours.Keys)
+            {
+                Tuple<int,int> t = Tuple.Create(neighbour, recId);
+                if(nD.ContainsKey(t) && nD[t] < minDist)
+                {
+                    minDist = nD[t];
+                    bestNeighbour = neighbour;
+                }
+            }
+
+            // If we found a path
+            if (minDist != int.MaxValue)
+            {
+                D[recId] = minDist + 1;
+                Nb[recId] = bestNeighbour;
+
+                UpdateRouteToAllNeighbours(recId);
+            }
+            // There's no path to be found :(
+            else
+            {
+                D.Remove(recId);
+                Nb.Remove(recId);
+            }
+            
         }
 
         ///// <summary>
         ///// Sends an update of the specified route to all neighbours
         ///// </summary>
-        //private void UpdateRouteToAllNeighbours(int toId)
-        //{
-        //    foreach (ConnectionWorker worker in neighbours.Values)
-        //    {
-        //        worker.sendMessage(string.Format("U {0} {1}", toId, D[toId]));
-        //    }
-        //}
+        private void UpdateRouteToAllNeighbours(int toId)
+        {
+            foreach (ConnectionWorker worker in neighbours.Values)
+            {
+                worker.sendMessage(string.Format("U {0} {1}", toId, D[toId]));
+            }
+        }
         
-        ///// <summary>
-        ///// Sends an update of the specified route to all neighbours
-        ///// </summary>
-        //private void UpdateAllRoutesToNeighbour(int neighbour)
-        //{
-        //    ConnectionWorker worker = neighbours[neighbour];
-        //    foreach (KeyValuePair<int, int> route in Nb)
-        //    {
-        //        worker.sendMessage(string.Format("U {0} {1}", route.Key, route.Value.Item2));
-        //    }
-        //}
+        /// <summary>
+        /// Sends an update of all routes to a neighbour.
+        /// </summary>
+        /// <param name="neighbour"></param>
+        private void UpdateAllRoutesToNeighbour(int neighbour)
+        {
+            ConnectionWorker worker = neighbours[neighbour];
+            foreach (KeyValuePair<int, int> route in Nb)
+            {
+                worker.sendMessage(string.Format("U {0} {1}", route.Key, D[route.Key]));
+            }
+        }
 
-        //private void UpdateAllRoutesToAllNeighbours()
-        //{
-        //    foreach (int neighbour in neighbours.Keys)
-        //        UpdateAllRoutesToNeighbour(neighbour);
-        //}
+        private void UpdateAllRoutesToAllNeighbours()
+        {
+            foreach (int neighbour in neighbours.Keys)
+                UpdateAllRoutesToNeighbour(neighbour);
+        }
 
         /// <summary>
         /// Sends message in the form of "M [toId] [message]".
@@ -215,12 +234,9 @@ namespace CCPrac2.NetChange
             lock (neighbours)   { neighbours.Add(remoteId, worker); }
             lock (Nb)           { Nb.Add(remoteId, remoteId); }
             lock (D)            { D.Add(remoteId, 1); }
-            lock (nD)           { nD.Add(Tuple.Create(remoteId, remoteId), 0); }
-
-                
+            lock (nD)           { nD.Add(Tuple.Create(remoteId, remoteId), 1); }
             
-            
-            //UpdateAllRoutesToAllNeighbours();
+            UpdateAllRoutesToAllNeighbours();
         }
 
         /// <summary>

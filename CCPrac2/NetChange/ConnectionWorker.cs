@@ -66,7 +66,7 @@ namespace CCPrac2.NetChange
         /// Receives messages and splits them on spaces (except for quotes), also
         /// adds the messages to the message queue.
         /// </summary>
-        public void Work()
+        private void Work()
         {
             while (true)
             {
