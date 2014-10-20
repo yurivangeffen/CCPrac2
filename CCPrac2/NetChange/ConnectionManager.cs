@@ -120,8 +120,22 @@ namespace CCPrac2.NetChange
                 case 'U': // new distance received: (to neighbour, distance)
                     NewDistance(command.fromId, int.Parse(command.data[0]), int.Parse(command.data[1]));
                     break;
+				case 'D':
+					RemoveConnection(command.fromId);
+					break;
+				case 'B':
+					NewMessage(int.Parse(command.data[0]), command.ToString());
+					break;
             }
         }
+
+		/// <summary>
+		/// removes a target connection and notifies neigbors of the changed distance
+		/// </summary>
+		/// <param name="id"></param>
+		private void RemoveConnection(int id) {
+			//todo: actually remove stuff
+		}
 
         /// <summary>
         /// Called by ExecuteCommand when we received a new distance measurement from a neighbour.
