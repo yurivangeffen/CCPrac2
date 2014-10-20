@@ -118,6 +118,7 @@ namespace CCPrac2.NetChange
             switch (command.messageType)
             {
                 case 'U': // new distance received: (to neighbour, distance)
+                    Console.WriteLine("// Colling NewMessage with: {0}, {1}, {2}", command.fromId, command.data[0], command.data[1]);
                     NewDistance(command.fromId, int.Parse(command.data[0]), int.Parse(command.data[1]));
                     break;
 				case 'D':
@@ -156,34 +157,39 @@ namespace CCPrac2.NetChange
         {
             Console.WriteLine("// Recomputing {0}", recId);
 
-            // Find best neighbour
-            int minDist = int.MaxValue;
-            int bestNeighbour = -1;
-            foreach(int neighbour in neighbours.Keys)
+            if (recId != id)
             {
-                Tuple<int,int> t = Tuple.Create(neighbour, recId);
-                if(nD.ContainsKey(t) && nD[t] < minDist)
+                // Find best neighbour
+                int minDist = int.MaxValue;
+                int bestNeighbour = -1;
+                foreach (int neighbour in neighbours.Keys)
                 {
-                    minDist = nD[t];
-                    bestNeighbour = neighbour;
+                    Tuple<int, int> t = Tuple.Create(neighbour, recId);
+                    Console.WriteLine("//\tChecking for path to {0} via {1}, does nD contain key: {2}", recId, neighbour, nD.ContainsKey(t));
+                    if (nD.ContainsKey(t) && nD[t] < minDist)
+                    {
+                        minDist = nD[t];
+                        bestNeighbour = neighbour;
+                    }
+                }
+
+                // If we found a path
+                if (minDist != int.MaxValue && (!D.ContainsKey(recId) || D[recId] != minDist + 1))
+                {
+                    Console.WriteLine("//\tFound a path, updating and resending...");
+                    D[recId] = minDist + 1;
+                    Nb[recId] = bestNeighbour;
+
+                    UpdateRouteToAllNeighbours(recId);
+                }
+                // There's no path to be found :(
+                else if (minDist == int.MaxValue)
+                {
+                    Console.WriteLine("//\tNo path found.");
+                    D.Remove(recId);
+                    Nb.Remove(recId);
                 }
             }
-
-            // If we found a path
-            if (minDist != int.MaxValue && (!D.ContainsKey(recId) ||  D[recId] > minDist + 1))
-            {
-                D[recId] = minDist + 1;
-                Nb[recId] = bestNeighbour;
-
-                UpdateRouteToAllNeighbours(recId);
-            }
-            // There's no path to be found :(
-            else
-            {
-                D.Remove(recId);
-                Nb.Remove(recId);
-            }
-            
         }
 
         ///// <summary>
@@ -248,10 +254,9 @@ namespace CCPrac2.NetChange
             lock (neighbours)   { neighbours.Add(remoteId, worker); }
             lock (Nb)           { Nb.Add(remoteId, remoteId); }
             lock (D)            { D.Add(remoteId, 1); }
-            lock (nD)           { nD.Add(Tuple.Create(remoteId, remoteId), 1); }
+            lock (nD)           { nD.Add(Tuple.Create(remoteId, remoteId), 0); }
 
             Recompute(remoteId);
-            UpdateAllRoutesToNeighbour(remoteId);
         }
 
         /// <summary>
@@ -280,19 +285,19 @@ namespace CCPrac2.NetChange
             Dictionary<int, int> copy;
 
             // Copy to make sure we don't lock too long
-            lock (nD)
+            lock (Nb)
             {
                 copy = new Dictionary<int, int>(Nb);
+
+                // Iterate and add to return string
+                Dictionary<int, int>.Enumerator dictEnum = copy.GetEnumerator();
+                while (dictEnum.MoveNext())
+                    ret += string.Format("{0} {1} {2}\n",
+                        dictEnum.Current.Key,
+                        D[dictEnum.Current.Key],
+                        D[dictEnum.Current.Key] == 0 ? "local" : dictEnum.Current.Value.ToString());
+
             }
-
-            // Iterate and add to return string
-            Dictionary<int, int>.Enumerator dictEnum = copy.GetEnumerator();
-            while (dictEnum.MoveNext())
-                ret += string.Format("{0} {1} {2}\n",
-                    dictEnum.Current.Key,
-                    D[dictEnum.Current.Key],
-                    D[dictEnum.Current.Key] == 0 ? "local" : dictEnum.Current.Value.ToString());
-
             return ret;
         }
 

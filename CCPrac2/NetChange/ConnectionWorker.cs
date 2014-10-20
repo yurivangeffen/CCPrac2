@@ -50,13 +50,14 @@ namespace CCPrac2.NetChange
             writer.WriteLine("id {0}", id); ;
             remoteId = int.Parse(reader.ReadLine().Split(' ')[1]);
 
-            manager.AddNeighbour(remoteId, this);
 
             Console.WriteLine("Verbonden: {0}", remoteId);
 			connected = true;
             // Start our main loop
             thread = new Thread(() => Work());
             thread.Start();
+
+            manager.AddNeighbour(remoteId, this);
         }
 
         /// <summary>
@@ -70,17 +71,21 @@ namespace CCPrac2.NetChange
 				while (connected) {
 					string incomming = reader.ReadLine();
 
+                    Console.WriteLine("// Received message from {0}: {1}", this.remoteId, incomming);
+
 					// Split on spaces (except for when a string is quoted)
 					string[] parts = Regex.Matches(incomming, @"[\""].+?[\""]|[^ ]+")
 					.Cast<Match>()
 					.Select(m => m.Value)
 					.ToArray<string>();
-
-					addToQueue(new MessageData(parts[0][0], id, parts.Skip(1).ToArray()));
+                    
+                    Console.WriteLine("// Parsed data: {0}", parts.Skip(1).Aggregate((a,b)=>a+ ", " + b).ToString());
+					addToQueue(new MessageData(parts[0][0], remoteId, parts.Skip(1).ToArray()));
 				}
-			} catch {
+			} catch(Exception e){
 				connected = false;
 				addToQueue(new MessageData('D', id, null));
+                Console.WriteLine("// Exception on incomming message: {0}", e.Message);
 			}
         }
 
@@ -100,7 +105,9 @@ namespace CCPrac2.NetChange
 					return;
 				}
 				try {
+                    Console.WriteLine("// Sending message to {0}: {1}", this.remoteId, message);
 					writer.WriteLine(message);
+                    writer.Flush();
 				} catch {
 					addToQueue(new MessageData('D',id,null));
 					connected = false;
