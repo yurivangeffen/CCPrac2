@@ -16,6 +16,8 @@ namespace CCPrac2
             if (args.Length == 0)
                 return;
 
+            Console.Title = "NetChange " + args[0];
+
             // Make a portlist
             int[] ports = new int[args.Length];
             for (int i = 0; i < ports.Length; ++i)
