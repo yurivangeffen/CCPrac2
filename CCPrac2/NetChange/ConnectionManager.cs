@@ -144,7 +144,7 @@ namespace CCPrac2.NetChange
         /// </summary>
         private void NewDistance(int neighbourId, int toId, int distance)
         {
-            nD[Tuple.Create(neighbourId, toId)] = distance + 1;
+            nD[Tuple.Create(neighbourId, toId)] = distance;
             Recompute(toId);
             return;
         }
@@ -172,7 +172,7 @@ namespace CCPrac2.NetChange
             // If we found a path
             if (minDist != int.MaxValue && (!D.ContainsKey(recId) ||  D[recId] > minDist + 1))
             {
-                D[recId] = minDist;
+                D[recId] = minDist + 1;
                 Nb[recId] = bestNeighbour;
 
                 UpdateRouteToAllNeighbours(recId);
@@ -290,8 +290,8 @@ namespace CCPrac2.NetChange
             while (dictEnum.MoveNext())
                 ret += string.Format("{0} {1} {2}\n",
                     dictEnum.Current.Key,
-                    dictEnum.Current.Value,
-                    D[dictEnum.Current.Key] == 0 ? "local" : D[dictEnum.Current.Key].ToString());
+                    D[dictEnum.Current.Key],
+                    D[dictEnum.Current.Key] == 0 ? "local" : dictEnum.Current.Value.ToString());
 
             return ret;
         }
