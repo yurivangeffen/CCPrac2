@@ -71,7 +71,7 @@ namespace CCPrac2.NetChange
 				while (connected) {
 					string incomming = reader.ReadLine();
 
-                    Console.WriteLine("// Received message from {0}: {1}", this.remoteId, incomming);
+                    //Console.WriteLine("// Received message from {0}: {1}", this.remoteId, incomming);
 
 					// Split on spaces (except for when a string is quoted)
 					string[] parts = Regex.Matches(incomming, @"[\""].+?[\""]|[^ ]+")
@@ -105,7 +105,7 @@ namespace CCPrac2.NetChange
 					return;
 				}
 				try {
-                    Console.WriteLine("// Sending message to {0}: {1}", this.remoteId, message);
+                    //Console.WriteLine("// Sending message to {0}: {1}", this.remoteId, message);
 					writer.WriteLine(message);
                     writer.Flush();
 				} catch {
