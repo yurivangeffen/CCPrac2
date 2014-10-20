@@ -145,7 +145,9 @@ namespace CCPrac2.NetChange
         /// </summary>
         private void NewDistance(int neighbourId, int toId, int distance)
         {
-            nD[Tuple.Create(neighbourId, toId)] = distance;
+			lock (nD) {
+				nD[Tuple.Create(neighbourId, toId)] = distance;
+			}
             Recompute(toId);
             return;
         }
@@ -162,23 +164,23 @@ namespace CCPrac2.NetChange
                 // Find best neighbour
                 int minDist = int.MaxValue;
                 int bestNeighbour = -1;
-                foreach (int neighbour in neighbours.Keys)
-                {
-                    Tuple<int, int> t = Tuple.Create(neighbour, recId);
-                    Console.WriteLine("//\tChecking for path to {0} via {1}, does nD contain key: {2}", recId, neighbour, nD.ContainsKey(t));
-                    if (nD.ContainsKey(t) && nD[t] < minDist)
-                    {
-                        minDist = nD[t];
-                        bestNeighbour = neighbour;
-                    }
-                }
+				lock (neighbours) {
+					foreach (int neighbour in neighbours.Keys) {
+						Tuple<int, int> t = Tuple.Create(neighbour, recId);
+						Console.WriteLine("//\tChecking for path to {0} via {1}, does nD contain key: {2}", recId, neighbour, nD.ContainsKey(t));
+						if (nD.ContainsKey(t) && nD[t] < minDist) {
+							minDist = nD[t];
+							bestNeighbour = neighbour;
+						}
+					}
+				}
 
                 // If we found a path
                 if (minDist != int.MaxValue && (!D.ContainsKey(recId) || D[recId] != minDist + 1))
                 {
                     Console.WriteLine("//\tFound a path, updating and resending...");
-                    D[recId] = minDist + 1;
-                    Nb[recId] = bestNeighbour;
+					lock (D) { D[recId] = minDist + 1; }
+					lock (Nb) { Nb[recId] = bestNeighbour; }
 
                     UpdateRouteToAllNeighbours(recId);
                 }
@@ -186,8 +188,8 @@ namespace CCPrac2.NetChange
                 else if (minDist == int.MaxValue)
                 {
                     Console.WriteLine("//\tNo path found.");
-                    D.Remove(recId);
-                    Nb.Remove(recId);
+					lock (D) { D.Remove(recId); }
+					lock (Nb) { Nb.Remove(recId); }
                 }
             }
         }
@@ -197,10 +199,11 @@ namespace CCPrac2.NetChange
         ///// </summary>
         private void UpdateRouteToAllNeighbours(int toId)
         {
-            foreach (ConnectionWorker worker in neighbours.Values)
-            {
-                worker.sendMessage(string.Format("U {0} {1}", toId, D[toId]));
-            }
+			lock (D) {
+				foreach (ConnectionWorker worker in neighbours.Values) {
+					worker.sendMessage(string.Format("U {0} {1}", toId, D[toId]));
+				}
+			}
         }
         
         /// <summary>
@@ -210,16 +213,19 @@ namespace CCPrac2.NetChange
         private void UpdateAllRoutesToNeighbour(int neighbour)
         {
             ConnectionWorker worker = neighbours[neighbour];
-            foreach (KeyValuePair<int, int> route in Nb)
-            {
-                worker.sendMessage(string.Format("U {0} {1}", route.Key, D[route.Key]));
-            }
+			lock (Nb) {
+				foreach (KeyValuePair<int, int> route in Nb) {
+					worker.sendMessage(string.Format("U {0} {1}", route.Key, D[route.Key]));
+				}
+			}
         }
 
         private void UpdateAllRoutesToAllNeighbours()
         {
-            foreach (int neighbour in neighbours.Keys)
-                UpdateAllRoutesToNeighbour(neighbour);
+			lock (neighbours) {
+				foreach (int neighbour in neighbours.Keys)
+					UpdateAllRoutesToNeighbour(neighbour);
+			}
         }
 
         /// <summary>
