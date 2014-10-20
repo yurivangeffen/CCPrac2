@@ -19,6 +19,7 @@ namespace CCPrac2.NetChange
         private int remoteId;
 
         private TcpClient client;
+		private bool connected = false;
 
         private ConnectionManager manager;
 
@@ -52,7 +53,7 @@ namespace CCPrac2.NetChange
             manager.AddNeighbour(remoteId, this);
 
             Console.WriteLine("Verbonden: {0}", remoteId);
-
+			connected = true;
             // Start our main loop
             thread = new Thread(() => Work());
             thread.Start();
@@ -65,18 +66,22 @@ namespace CCPrac2.NetChange
         /// </summary>
         public void Work()
         {
-            while (true)
-            {
-                string incomming = reader.ReadLine();
+			try {
+				while (connected) {
+					string incomming = reader.ReadLine();
 
-                // Split on spaces (except for when a string is quoted)
-                string[] parts = Regex.Matches(incomming, @"[\""].+?[\""]|[^ ]+")
-                .Cast<Match>()
-                .Select(m => m.Value)
-                .ToArray<string>();
+					// Split on spaces (except for when a string is quoted)
+					string[] parts = Regex.Matches(incomming, @"[\""].+?[\""]|[^ ]+")
+					.Cast<Match>()
+					.Select(m => m.Value)
+					.ToArray<string>();
 
-                addToQueue(new MessageData(parts[0][0], id, parts.Skip(1).ToArray()));
-            }
+					addToQueue(new MessageData(parts[0][0], id, parts.Skip(1).ToArray()));
+				}
+			} catch {
+				connected = false;
+				addToQueue(new MessageData('D', id, null));
+			}
         }
 
         /// <summary>
@@ -89,12 +94,18 @@ namespace CCPrac2.NetChange
 
         public void sendMessage(string message)
         {
-            if (writer == null)
-            {
-                Console.WriteLine("// Writer not yet initialized, can't write \"{0}\"", message);
-                return;
-            }
-            writer.WriteLine(message);
+			if (connected) {
+				if (writer == null) {
+					Console.WriteLine("// Writer not yet initialized, can't write \"{0}\"", message);
+					return;
+				}
+				try {
+					writer.WriteLine(message);
+				} catch {
+					addToQueue(new MessageData('D',id,null));
+					connected = false;
+				}
+			}
         }
     }
 }
