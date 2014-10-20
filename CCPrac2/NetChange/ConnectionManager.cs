@@ -183,12 +183,29 @@ namespace CCPrac2.NetChange
         /// </summary>
         private void NewDistance(int neighbourId, int toId, int distance)
         {
+		  //if we need more hops than there are nodes the node is no longer in the same network
+		  if (distance > D.Count) {
+			RemoveNode(toId);
+			return;
+		  }
+			
 			lock (nD) {
 				nD[Tuple.Create(neighbourId, toId)] = distance;
 			}
             Recompute(toId);
             return;
         }
+
+		private void RemoveNode(int node) {
+		  lock (D) { D.Remove(node); }
+		  lock (nD) {
+			List<Tuple<int, int>> rem = new List<Tuple<int, int>>();
+			foreach (var key in nD.Keys) {if (key.Item2 == node) rem.Add(key);  }		
+			foreach (var k in rem) { nD.Remove(k); }
+		  }
+		  lock (Nb) { Nb.Remove(node); }
+
+		}
 
         /// <summary>
         /// Recomputes our distance values according to the Netchange algorithm
