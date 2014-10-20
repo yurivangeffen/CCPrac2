@@ -170,7 +170,7 @@ namespace CCPrac2.NetChange
             }
 
             // If we found a path
-            if (minDist != int.MaxValue)
+            if (minDist != int.MaxValue && (!D.ContainsKey(recId) ||  D[recId] > minDist + 1))
             {
                 D[recId] = minDist + 1;
                 Nb[recId] = bestNeighbour;
