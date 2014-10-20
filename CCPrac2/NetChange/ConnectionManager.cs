@@ -167,6 +167,7 @@ namespace CCPrac2.NetChange
 			  if (neighbours.ContainsKey(ids)) {
 				var temp = neighbours[ids];
 				neighbours.Remove(ids);
+				temp.sendMessage("D " + ID);
 				temp.Dispose();
 			  }
 			}
@@ -272,24 +273,36 @@ namespace CCPrac2.NetChange
             for (int i = 1; i < message.Length; ++i )
                 concatted += message[i] + " ";
             concatted = concatted.Remove(concatted.Length - 1);
+			  // Message is for us!
+			if (id == toId) {
+			  Console.WriteLine(concatted);
+			  return;
+			}
+			
+		  // We have a connection to the target
+		  int neighbourId = int.MinValue;
+		  lock (Nb){
+			if (!Nb.ContainsKey(toId)) 
+			  return;
+			neighbourId = Nb[toId];
+		  }
+		  ConnectionWorker worker;
+		  lock(neighbours){
+			if(!neighbours.ContainsKey(neighbourId))
+			  return;
+			worker = neighbours[neighbourId];
+		  }
+		  if (worker != null) {
+			worker.sendMessage(string.Format("B {0} {1}", toId, concatted));
+			Console.WriteLine("Bericht voor {0} doorgestuurd naar {1}", toId, neighbourId);
+			return;
+		  }
+			
+		 // No entry in router
+		 Console.WriteLine("Poort {0} is niet bekend", toId);
+		 }
 
-            // Message is for us!
-            if (id == toId)
-                Console.WriteLine(concatted);
-            // We have a connection to the target
-            else if (Nb.ContainsKey(toId))
-            {
-                int neighbourId = Nb[toId];
-                ConnectionWorker worker = neighbours[neighbourId];
-
-                worker.sendMessage(string.Format("B {0} {1}", toId, concatted));
-                Console.WriteLine("Bericht voor {0} doorgestuurd naar {1}", toId, neighbourId);
-            }
-            // No entry in router
-            else
-                Console.WriteLine("Poort {0} is niet bekend", toId);
-
-        }
+        
 
         /// <summary>
         /// Adds a new neighbour to our network state.
